@@ -23,6 +23,12 @@ protected:
 
 	void MoveRight(float Value);
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	class UCameraComponent* CameraComp;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	class USpringArmComponent* SpringArmComp;
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

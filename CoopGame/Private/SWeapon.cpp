@@ -5,6 +5,8 @@
 #include "Particles/ParticleSystem.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Particles/ParticleSystemComponent.h"
+#include "CoopGame.h"
+#include "PhysicalMaterials/PhysicalMaterial.h"
 
 
 static int32 DebugWeaponDrawing = 0;
@@ -42,6 +44,7 @@ void ASWeapon::Fire()
 		QueryParams.AddIgnoredActor(MyOwner);
 		QueryParams.AddIgnoredActor(this);
 		QueryParams.bTraceComplex = true;
+		QueryParams.bReturnPhysicalMaterial = true;
 
 		// Particle "Target" Parameter
 		FVector TracerEndPoint = TraceEnd;
@@ -52,8 +55,23 @@ void ASWeapon::Fire()
 			AActor* HitActor = Hit.GetActor();
 			UGameplayStatics::ApplyPointDamage(HitActor, 20.0f, ShotDirection, Hit, MyOwner->GetInstigatorController(), this, DamageType);
 
-			if (ImpactEffect) {
-				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ImpactEffect, Hit.ImpactPoint, Hit.ImpactNormal.Rotation());
+			EPhysicalSurface SurfaceType = UPhysicalMaterial::DetermineSurfaceType(Hit.PhysMaterial.Get()); // To return physical material you need the set bReturnPhyislcaMaterial to be true
+			UParticleSystem* SelectedEffect = nullptr;
+
+			switch (SurfaceType) {
+			case SURFACE_FLESHDEFAULT :
+				//SelectedEffect = FleshImpactEffect;
+				//break;
+				// Since there is no break it will just go to the next case.
+			case SURFACE_FLESHVULNERABLE :
+				SelectedEffect = FleshImpactEffect;
+				break;
+			default :
+				SelectedEffect = DefaultImpactEffect;
+			}
+
+			if (SelectedEffect) {
+				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), SelectedEffect, Hit.ImpactPoint, Hit.ImpactNormal.Rotation());
 			}
 
 			TracerEndPoint = Hit.ImpactPoint;
